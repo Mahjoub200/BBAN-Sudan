@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>تحويل رقم الحساب إلى BBAN</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>/* الألوان والمظهر (فاتح / داكن) — عدّل المتغيرات هنا فقط */
+:root{
+  --bg:#eef3f8;--panel:#fff;--field:#f6f9fc;--ink:#0d2036;--muted:#5b6f84;--line:#d5e0ec;
+  --pri:#0a4f9c;--pri2:#0e6fd8;--ok:#0d8a5f;--okbg:#e2f6ee;
+  --warn-bg:#fff4d6;--warn-line:#f0d68a;--warn:#7a5800;--err-bg:#fde8e8;--err-line:#f1b3b3;--err:#a12626;
+  --top:linear-gradient(160deg,#0a3d7a,#0e6fd8);color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08111e;--panel:#0f1b2e;--field:#0a1424;--ink:#e8f0fa;--muted:#8da2b9;--line:#223652;
+  --pri:#5aa8ff;--pri2:#2f86f0;--ok:#3ddc97;--okbg:#0f3a2c;
+  --warn-bg:#2b2410;--warn-line:#57481c;--warn:#f0d58a;--err-bg:#3a1819;--err-line:#6e3438;--err:#ffb4b4;
+  --top:linear-gradient(160deg,#0a2a52,#0b4a96);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08111e;--panel:#0f1b2e;--field:#0a1424;--ink:#e8f0fa;--muted:#8da2b9;--line:#223652;
+  --pri:#5aa8ff;--pri2:#2f86f0;--ok:#3ddc97;--okbg:#0f3a2c;
+  --warn-bg:#2b2410;--warn-line:#57481c;--warn:#f0d58a;--err-bg:#3a1819;--err-line:#6e3438;--err:#ffb4b4;
+  --top:linear-gradient(160deg,#0a2a52,#0b4a96);color-scheme:dark}
+</style>
+<style>/* التخطيط والمكوّنات */
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;line-height:1.7;transition:background .3s}
+.wrap{max-width:480px;margin:0 auto;padding:0 14px 34px}
+.hero{background:var(--top);color:#fff;margin:0 -14px;padding:16px 18px 64px;border-radius:0 0 28px 28px}
+.bar{display:flex;justify-content:space-between;align-items:center}
+.tb{display:flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 14px;border-radius:12px;border:1px solid #ffffff55;background:#ffffff1a;color:#fff;font:inherit;font-weight:600;font-size:14px;cursor:pointer}
+.tb:hover{background:#ffffff30}
+.tb svg{width:19px;height:19px}.tb .sun{display:none}
+:root[data-theme="dark"] .tb .sun{display:block}:root[data-theme="dark"] .tb .moon{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tb .sun{display:block}:root:not([data-theme="light"]) .tb .moon{display:none}}
+button:focus-visible,select:focus-visible{outline:3px solid #ffbf47;outline-offset:2px}
+.brand{display:flex;align-items:center;gap:14px;margin-top:20px}
+.shield{flex:none;width:52px;height:52px;border-radius:16px;background:#ffffff22;display:grid;place-items:center}
+.shield svg{width:30px;height:30px}
+h1{margin:0;font-size:24px;line-height:1.35;font-weight:700}
+.hero p{margin:2px 0 0;font-size:13.5px;opacity:.85}
+.secure{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:4px 12px;border-radius:99px;background:#0d8a5f33;border:1px solid #3ddc9755;font-size:12.5px;color:#c9f8e3}
+.secure svg{width:14px;height:14px}
+
+.panel{position:relative;margin-top:-40px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px 16px 16px;box-shadow:0 20px 40px -26px #06203f88}
+.step{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center}
+label,.lbl{font-weight:600;font-size:14.5px}
+.field{margin-bottom:22px}
+.combo{border:1.5px solid var(--line);border-radius:12px;background:var(--field);overflow:hidden;transition:.2s}
+.combo:focus-within,.accw:focus-within{border-color:var(--pri2);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri2) 25%,transparent)}
+input,select{width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:15.5px;height:50px;padding:0 14px;outline:none}
+#search{height:42px;font-size:14px;border-bottom:1px solid var(--line)}
+::placeholder{color:var(--muted);opacity:.85}
+select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-inline-end:40px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' fill='none' stroke='%230e6fd8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l6 6 6-6'/%3E%3C/svg%3E") no-repeat;background-position:left 15px center}
+:root[dir="ltr"] select{background-position:right 15px center}
+select option{background:var(--panel);color:var(--ink)}
+.fmt{display:none;direction:ltr;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}.fmt.on{display:flex}
+.seg{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;padding:1px 10px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--muted)}
+.seg.a{color:var(--pri);border-color:var(--pri);border-style:dashed}
+.accw{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:var(--field);transition:.2s;direction:ltr}
+.accw.bad{border-color:#d63a3a;box-shadow:0 0 0 3px #d63a3a30}
+.accw.good{border-color:var(--ok)}
+#account{direction:ltr;text-align:left;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:21px;letter-spacing:2px;height:56px}
+#account::placeholder{font-family:"IBM Plex Sans Arabic",sans-serif;font-size:14px;letter-spacing:0;font-weight:400}
+.cnt{flex:none;margin-inline:0 12px;font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--muted);padding-right:12px}
+.accw.bad .cnt{color:#d63a3a}.accw.good .cnt{color:var(--ok)}
+.bar2{height:4px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden;direction:ltr}
+.bar2 i{display:block;height:100%;width:0;background:var(--pri2);transition:width .2s,background .2s}
+.accw.bad ~ .bar2 i{background:#d63a3a}.accw.good ~ .bar2 i{background:var(--ok)}
+.hint{color:var(--muted);font-size:12.5px;margin:7px 2px 0}
+.live{min-height:0;margin-top:10px;font-size:13.5px;border-radius:10px;padding:0}
+.live.show{padding:10px 12px}
+.live.err{background:var(--err-bg);border:1px solid var(--err-line);color:var(--err)}
+.live.warn{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn)}
+.live.info{background:var(--field);border:1px solid var(--line);color:var(--muted)}
+.go{width:100%;height:54px;border:0;border-radius:12px;cursor:pointer;font:inherit;font-weight:700;font-size:16.5px;color:#fff;background:linear-gradient(180deg,var(--pri2),var(--pri));box-shadow:0 12px 22px -12px var(--pri2);transition:transform .12s,filter .2s}
+.go:hover{filter:brightness(1.08)}.go:active{transform:translateY(1px)}
+.clr{display:block;margin:12px auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:6px 14px;border-radius:8px}
+.clr:hover{color:var(--ink)}
+.out{display:none;margin-top:20px}.out.show{display:block}
+.card{position:relative;overflow:hidden;border-radius:18px;padding:18px;color:#fff;background:linear-gradient(145deg,#0a3d7a,#0e6fd8 70%,#2f9bff);box-shadow:0 24px 40px -24px #0a3d7acc;animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+.card::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;border:30px solid #ffffff12;top:-90px;inset-inline-end:-70px}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.c-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;position:relative}
+.c-bank{font-weight:700;font-size:17px;line-height:1.4}
+.tag{font-size:11.5px;font-weight:600;padding:1px 10px;border-radius:99px;white-space:nowrap;margin-top:3px}
+.tag.ok{background:#0d8a5f;color:#e5fff4}.tag.no{background:#ffffff26;color:#fff}
+.c-lbl{margin-top:22px;font-size:11.5px;letter-spacing:1.5px;opacity:.8;direction:ltr;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.eye{background:#ffffff22;border:0;color:#fff;font:inherit;font-size:12px;border-radius:8px;padding:1px 10px;cursor:pointer}
+#vb{direction:ltr;text-align:left;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:25px;letter-spacing:2px;overflow-wrap:anywhere;margin-top:2px}
+.cp{width:100%;height:48px;margin-top:12px;border-radius:12px;border:1.5px solid var(--pri2);background:transparent;color:var(--pri);font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}
+.cp:hover{background:color-mix(in srgb,var(--pri2) 12%,transparent)}
+.note{margin:8px 2px 0;color:var(--muted);font-size:12px;text-align:center}
+.fine{text-align:center;color:var(--muted);font-size:12.5px;max-width:40ch;margin:22px auto 0}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.acts .cp{margin-top:0;height:44px;font-size:13.5px}
+.wa{border-color:#1fa855;color:#1fa855}
+.qr{display:none;margin-top:12px;text-align:center}.qr.show{display:block}
+.qr img{display:block;margin:0 auto;width:190px;height:190px;max-width:100%;padding:10px;background:#fff;border-radius:12px;image-rendering:pixelated;border:1px solid var(--line)}
+.qr p{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.hist{margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hh b{font-size:14.5px}
+.hclr{background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;cursor:pointer;padding:4px 8px;border-radius:8px}
+.hclr:hover{color:var(--err)}
+.hist ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hist li{display:flex;gap:6px}
+.hi{flex:1;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;text-align:start}
+.hi span{font-family:"IBM Plex Mono",monospace;color:var(--muted);direction:ltr}
+.hi:hover{border-color:var(--pri2)}
+.hx{flex:none;width:38px;border:1px solid var(--line);background:var(--field);color:var(--muted);border-radius:10px;font-size:18px;cursor:pointer}
+.hx:hover{color:var(--err)}
+.wrap{padding-bottom:96px}
+.page[hidden]{display:none}
+.tabs{position:fixed;inset-inline:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px))}
+.tin{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tin button{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:var(--muted);font:inherit;font-size:12px;padding:4px;border-radius:10px;cursor:pointer}
+.tin button.on{color:var(--pri2);font-weight:600}.tin svg{width:23px;height:23px}
+h2{margin:0 0 4px;font-size:18px}
+.row{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid var(--line);font-weight:600;font-size:14.5px}
+.segc{display:flex;gap:6px}
+.segc button{flex:1;height:40px;border:1.5px solid var(--line);background:var(--field);color:var(--ink);border-radius:10px;font:inherit;font-size:13.5px;cursor:pointer}
+.segc button.on{border-color:var(--pri2);background:color-mix(in srgb,var(--pri2) 14%,transparent);color:var(--pri2);font-weight:600}
+#p-set .cp{margin-top:16px}
+.lg{width:34px;height:34px;border-radius:10px;object-fit:contain;background:#fff;flex:none}
+.lg.ph{display:grid;place-items:center;background:var(--pri);color:#fff;font-weight:700;font-size:14px}
+.c-bank{display:flex;align-items:center;gap:10px}
+.acts{grid-template-columns:repeat(3,1fr)}
+.qr{position:fixed;inset:0;margin:0;padding:20px;z-index:50;background:#000c;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.qr.show{display:flex}
+.qr img{width:260px;height:260px}
+.qr p{color:#fff;font-size:13.5px;margin-top:14px}
+.sheet{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:#0009;z-index:40}
+.sheet.show{display:flex}
+.sbox{width:100%;max-width:480px;background:var(--panel);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 6px;margin:14px 0}
+.si{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink);text-decoration:none;font:inherit;font-size:12px;background:none;border:0;cursor:pointer}
+.si i{width:54px;height:54px;border-radius:50%;display:grid;place-items:center}
+.si svg{width:28px;height:28px}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+
+/* ===== منتقي البنوك ===== */
+.pick{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:0 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--field);color:var(--ink);font:inherit;font-size:15.5px;cursor:pointer;text-align:start;transition:.2s}
+.pick:hover,.pick:focus-visible{border-color:var(--pri2)}
+.pick .pt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick.empty .pt{color:var(--muted)}
+.pick svg{width:15px;height:15px;color:var(--pri2);flex:none}
+#plogo{display:flex}#plogo:empty{display:none}
+.big{max-height:82vh;display:flex;flex-direction:column}
+.bhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bhead .hx{height:38px}
+.big #search{height:46px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);margin-bottom:10px;font-size:15px}
+.blist{list-style:none;margin:0;padding:0;overflow:auto;flex:1;display:grid;gap:6px;align-content:start}
+.bi{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px solid transparent;border-radius:12px;background:var(--field);color:var(--ink);font:inherit;font-size:14.5px;cursor:pointer;text-align:start}
+.bi:hover{border-color:var(--line)}
+.bi.sel{border-color:var(--pri2);background:color-mix(in srgb,var(--pri2) 10%,var(--field))}
+.bi .bn{flex:1;min-width:0}
+.bi small{display:block;color:var(--muted);font-family:"IBM Plex Mono",monospace;direction:ltr;text-align:start;font-size:12px}
+.bi .ck{color:var(--pri2);font-weight:700}
+.nores{color:var(--muted);text-align:center;padding:20px;font-size:14px}
+/* ===== شريط تنقل عائم ===== */
+.wrap{padding-bottom:112px}
+.tabs{inset-inline:0;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:0 14px;background:none;border:0;pointer-events:none}
+.tin{pointer-events:auto;max-width:340px;padding:6px;border:1px solid var(--line);border-radius:24px;background:color-mix(in srgb,var(--panel) 86%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 16px 36px -12px #04142ccc}
+.tin button{padding:6px 4px;border-radius:18px;transition:background .2s,color .2s}
+.tin button.on{background:color-mix(in srgb,var(--pri2) 15%,transparent)}
+#p-hist .hist{margin-top:8px;border-top:0;padding-top:0}
+/* ===== اهتزاز عند اكتمال الخانات ===== */
+.accw.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.accw.shake{animation:none}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <div class="bar">
+    <button class="tb" id="lang" type="button" aria-label="Language">EN</button>
+    <button class="tb" id="theme" type="button" aria-label="Theme">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+  <div class="brand">
+    <div class="shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/><path d="M8.5 12.2l2.5 2.5 4.5-5"/></svg></div>
+    <div><h1 data-i="title"></h1><p data-i="sub"></p></div>
+  </div>
+  <span class="secure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span data-i="secure"></span></span>
+</header>
+
+<section class="panel page" id="p-home">
+  <div class="field">
+    <div class="step"><span class="num">1</span><label for="pick" data-i="bank"></label></div>
+    <button type="button" class="pick empty" id="pick" aria-haspopup="dialog"><span id="plogo"></span><span class="pt" id="ptxt"></span><svg viewBox="0 0 14 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1.5l6 6 6-6"/></svg></button>
+    <select id="bank" hidden tabindex="-1" aria-hidden="true"></select>
+    <div class="fmt" id="fmt" aria-live="polite"></div>
+  </div>
+  <div class="field">
+    <div class="step"><span class="num">2</span><label for="account" data-i="acc"></label></div>
+    <div class="accw" id="accw">
+      <input id="account" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="14" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="live">
+      <span class="cnt" id="cnt" aria-hidden="true">0</span>
+    </div>
+    <div class="bar2"><i id="prog"></i></div>
+    <div class="hint" data-i="hint"></div>
+    <div class="live" id="live" role="alert" aria-live="assertive"></div>
+  </div>
+  <button class="go" id="go" type="button" data-i="go"></button>
+
+  <div class="out" id="res">
+    <article class="card">
+      <div class="c-top"><span class="c-bank" id="bname"></span><span class="tag" id="btag"></span></div>
+      <div class="c-lbl"><span>BBAN</span><button class="eye" id="eye" type="button"></button></div>
+      <div id="vb"></div>
+    </article>
+    <button class="cp" id="cp" type="button" data-i="copy"></button>
+    <div class="acts">
+      <button class="cp" id="wa" type="button" data-i="shr"></button>
+      
+      <button class="cp" id="qb" type="button" data-i="qb"></button>
+      <button class="cp" id="sv" type="button" data-i="sv"></button>
+    </div>
+    <div class="qr" id="qr"><img id="qimg" alt="QR"><p id="qcap"></p></div>
+    <p class="note" data-i="auto"></p>
+  </div>
+  
+  <button class="clr" id="clear" type="button" data-i="clear"></button>
+</section>
+<section class="panel page" id="p-hist" hidden><h2 data-i="tHist"></h2><p class="note" id="empty" data-i="empty"></p><div class="hist" id="hist">
+    <div class="hh"><b data-i="htitle"></b><button class="hclr" id="hclr" type="button" data-i="hclr"></button></div>
+    <ul id="hlist"></ul>
+    <p class="note" data-i="hnote"></p>
+  </div></section>
+<section class="panel page" id="p-set" hidden>
+  <h2 data-i="stTitle"></h2>
+  <div class="row"><span data-i="stLang"></span><div class="segc" data-k="lang"><button type="button" data-v="ar">العربية</button><button type="button" data-v="en">English</button></div></div>
+  <div class="row"><span data-i="stTheme"></span><div class="segc" data-k="theme"><button type="button" data-v="auto" data-i="auto2"></button><button type="button" data-v="light" data-i="light"></button><button type="button" data-v="dark" data-i="dark"></button></div></div>
+  <div class="row"><span data-i="stClear"></span><div class="segc" data-k="ttl"><button type="button" data-v="0" data-i="off"></button><button type="button" data-v="60" data-i="m1"></button><button type="button" data-v="120" data-i="m2"></button><button type="button" data-v="300" data-i="m5"></button></div></div>
+  <div class="row"><span data-i="stHide"></span><div class="segc" data-k="hide"><button type="button" data-v="0" data-i="no"></button><button type="button" data-v="1" data-i="yes"></button></div></div>
+  <button class="cp" id="hclr2" type="button" data-i="hclr"></button>
+  <p class="note" data-i="stNote"></p>
+</section>
+<div class="sheet" id="bks"><div class="sbox big" role="dialog" aria-modal="true"><div class="bhead"><b data-i="bank"></b><button class="hx" id="bkx" type="button" aria-label="Close">×</button></div><input id="search" type="search" autocomplete="off" maxlength="40"><ul class="blist" id="blist"></ul></div></div>
+<div class="sheet" id="shs"><div class="sbox"><b data-i="shTitle"></b><div class="sgrid" id="sgrid"></div><p class="note" id="shn"></p><button class="cp" id="shx" type="button" data-i="close"></button></div></div>
+<nav class="tabs"><div class="tin">
+  <button type="button" data-p="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span data-i="tHome"></span></button>
+  <button type="button" data-p="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span data-i="tHist"></span></button>
+  <button type="button" data-p="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><span data-i="tSet"></span></button>
+</div></nav>
+<p class="fine" id="fine" data-i="fine"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>"use strict";
+/* قائمة البنوك: id، الاسم عربي/إنجليزي، البادئة p، اللاحقة s، حالة الصيغة st */
+const BANKS=[
+{id:"khartoum",n:"بنك الخرطوم – بنكك",e:"Bank of Khartoum – Bankak",p:"040",s:"0001",st:"ok"},
+{id:"faisal",n:"بنك فيصل الإسلامي – فوري",e:"Faisal Islamic Bank – Fawry",p:"02",s:"0001",st:"ok"},
+{id:"omdurman",n:"بنك أمدرمان الوطني – أوكاش",e:"Omdurman National Bank – OCash",p:"240",s:"00001",st:"ok"},
+{id:"nile",n:"بنك النيل – ساهل",e:"Nile Bank – Sahel",p:"08490",s:"01",st:"ok"},
+{id:"mashreq",n:"بنك النيل الأزرق – مشرق",e:"Blue Nile Mashreq Bank – Mashreq",p:"150000",s:"",st:"ok"},
+{id:"islamic",n:"البنك الإسلامي السوداني – أمن بلس",e:"Sudanese Islamic Bank – Aman Plus",p:"14000",s:"00001",st:"ok"},
+{id:"mazare",n:"بنك المزارع التجاري – مصرفك",e:"Farmers' Commercial Bank – Masrafak",p:"222",s:"",st:"ok"},
+{id:"french",n:"البنك السوداني الفرنسي",e:"Sudanese French Bank",p:"110",s:"00001",st:"ok"},
+{id:"agri",n:"البنك الزراعي السوداني",e:"Agricultural Bank of Sudan",p:"03",s:"01001",st:"unk"},
+{id:"salam",n:"بنك السلام السوداني",e:"Al Salam Bank Sudan",p:"180",s:"00001",st:"unk"},
+{id:"baraka",n:"بنك البركة السوداني",e:"Al Baraka Bank Sudan",p:"070",s:"00001",st:"bad"},
+{id:"livestock",n:"بنك الثروة الحيوانية",e:"Animal Resources Bank",p:"090",s:"00001",st:"unk"},
+{id:"realestate",n:"البنك العقاري التجاري",e:"Real Estate Commercial Bank",p:"210",s:"00001",st:"unk"},
+{id:"industrial",n:"بنك التنمية الصناعية",e:"Industrial Development Bank",p:"130",s:"00001",st:"unk"},
+{id:"united",n:"بنك المال المتحد",e:"United Capital Bank",p:"170",s:"00001",st:"unk"},
+{id:"cashi",n:"محفظة ماي كاشي – Cashi",e:"MyCashi Wallet – Cashi",p:"070",s:"98",st:"unk"},
+{id:"workers",n:"بنك العمال الوطني",e:"National Workers Bank",p:"160",s:"00001",st:"unk"},
+{id:"saving",n:"بنك الادخار والتنمية",e:"Savings & Development Bank",p:"120",s:"00001",st:"unk"},
+{id:"tadamon",n:"بنك التضامن الإسلامي",e:"Tadamon Islamic Bank",p:"080",s:"00001",st:"unk"},
+{id:"gulf",n:"بنك الخليج",e:"Gulf Bank",p:"290",s:"00001",st:"unk"},
+{id:"family",n:"بنك الأسرة",e:"Family Bank",p:"300",s:"00001",st:"unk"},
+{id:"north",n:"بنك الشمال الإسلامي",e:"Al Shamal Islamic Bank",p:"050",s:"00001",st:"unk"},
+{id:"nilain",n:"بنك النيلين",e:"Nilein Bank",p:"060",s:"00001",st:"unk"},
+{id:"jordan",n:"البنك السوداني الأردني",e:"Sudanese Jordanian Bank",p:"190",s:"00001",st:"unk"},
+{id:"qnb",n:"بنك قطر الوطني – QNB",e:"Qatar National Bank – QNB",p:"230",s:"00001",st:"unk"},
+{id:"byblos",n:"بنك بيبلوس إفريقيا",e:"Byblos Bank Africa",p:"250",s:"00001",st:"unk"}
+];
+</script>
+<script>"use strict";
+/* شعارات البنوك: ضع الصورة في assets/banks/<id>.png وتظهر تلقائياً، أو حدّد مساراً مخصصاً هنا */
+const LOGO_DIR="assets/banks/";
+const LOGOS={
+  // khartoum:"assets/banks/bok.svg",
+  // faisal:"https://example.com/faisal.png",
+};
+</script>
+<script>"use strict";
+/* النصوص العربية والإنجليزية */
+const T={
+ar:{title:"تحويل رقم الحساب",sub:"إنشاء رقم BBAN الكامل للبنك",secure:"اتصال آمن · لا تُرسل أي بيانات خارج جهازك",bank:"اختر البنك المستقبِل",acc:"أدخل رقم الحساب",hint:"أرقام فقط. تُحوَّل الأرقام العربية تلقائياً.",go:"إنشاء رقم BBAN",copy:"نسخ الرقم",copied:"✓ تم النسخ",copyFail:"تعذّر النسخ، انسخ يدوياً",clear:"مسح كل البيانات",
+ search:"ابحث باسم البنك",ph:"رقم الحساب",pick:"اختر البنك",show:"إظهار",hide:"إخفاء",auto:"يُمسح الرقم تلقائياً بعد دقيقتين حفاظاً على خصوصيتك.",
+ fine:"نجاح تركيب الرقم لا يعني أن الحساب موجود. تأكد من اسم المستفيد لدى البنك قبل أي تحويل. الأداة تعمل على جهازك ولا تحفظ أي رقم إلا إذا ضغطت «حفظ في السجل».",
+ i1:"اختر البنك أولاً لنتحقق من عدد خانات الحساب.",i2:"{b} يتطلب رقم حساب من {L} بالضبط.",
+ e0:"اختر البنك المستقبِل أولاً.",e1:"أدخل رقم الحساب.",
+ sh:"رقم الحساب في {b} يتكوّن من {L} بالضبط، وأنت أدخلت {n}. ينقصك {x}.",
+ lg:"رقم الحساب في {b} يتكوّن من {L} فقط، وأنت أدخلت {n} (زيادة {x}). لن يُنشأ الرقم حتى تصحّح العدد.",
+ zr:"رقم الحساب لا يمكن أن يكون أصفاراً فقط.",mm:"الرقم الكامل (14 خانة) لا يطابق بادئة {b}. راجع البنك المختار.",
+ chars:"تم تجاهل الحروف والرموز: الأرقام فقط.",ok:"✓ عدد الخانات صحيح.",
+ w2:"البادئة تطابق البنك لكن اللاحقة تختلف عن المسجّلة. قد يكون ذلك طبيعياً.",w3:"صيغة هذا البنك غير مؤكدة رسمياً. اطلب الرقم من المستفيد أو من البنك وقارنه بالناتج.",
+ tok:"مطابق لعيّنة منشورة",tbad:"صيغة متعارضة",tunk:"صيغة غير مؤكدة",tnone:"بنك غير معروف",nores:"لا توجد نتائج",full:"اكتمل عدد خانات الحساب في {b}: {L}. لا يمكن إضافة المزيد، يمكنك الحذف فقط.",wa:"واتساب",shr:"مشاركة",shTitle:"مشاركة الرقم عبر",shWarn:"أرسل الرقم في محادثة خاصة فقط ولا تنشره علناً. فيسبوك وماسنجر يتطلبان لصق النص بعد نسخه.",close:"إغلاق",sms:"رسالة SMS",copyT:"نسخ النص",more:"المزيد",cpTxt:"✓ تم نسخ النص، الصقه في المحادثة",tapClose:"اضغط للإغلاق",tHome:"الرئيسية",tHist:"المحفوظة",tSet:"الإعدادات",empty:"لا توجد أرقام محفوظة بعد. بعد إنشاء رقم اضغط «حفظ في السجل».",stTitle:"الإعدادات",stLang:"اللغة",stTheme:"المظهر",auto2:"تلقائي",light:"فاتح",dark:"داكن",stClear:"مسح الرقم تلقائياً بعد",off:"إيقاف",m1:"دقيقة",m2:"دقيقتان",m5:"5 دقائق",stHide:"إخفاء الرقم عند ظهور النتيجة",no:"لا",yes:"نعم",stNote:"الإعدادات تُحفظ على جهازك فقط.",qb:"رمز QR",sv:"حفظ في السجل",saved:"✓ تم الحفظ",saveFail:"تعذّر الحفظ",qrcap:"امسح الرمز لقراءة BBAN",qrFail:"تعذّر إنشاء الرمز، تحقق من الاتصال",del:"حذف",htitle:"آخر الأرقام",hclr:"مسح السجل",hnote:"محفوظ مشفّراً على جهازك فقط (AES-256). اضغط على رقم لاستعادته."},
+en:{title:"Account Number Converter",sub:"Build the bank's full BBAN number",secure:"Secure · Nothing leaves your device",bank:"Select the receiving bank",acc:"Enter the account number",hint:"Digits only. Arabic digits are converted automatically.",go:"Generate BBAN",copy:"Copy number",copied:"✓ Copied",copyFail:"Copy failed, please copy manually",clear:"Clear all data",
+ search:"Search by bank name",ph:"Account number",pick:"Select a bank",show:"Show",hide:"Hide",auto:"The number is cleared automatically after 2 minutes for your privacy.",
+ fine:"A successfully built number does not prove the account exists. Confirm the beneficiary name with the bank before any transfer. This tool runs on your device and saves no number unless you tap “Save to history”.",
+ i1:"Select the bank first so we can check the account length.",i2:"{b} requires an account number of exactly {L}.",
+ e0:"Select the receiving bank first.",e1:"Enter the account number.",
+ sh:"An account number at {b} has exactly {L}, but you entered {n}. {x} missing.",
+ lg:"An account number at {b} has only {L}, but you entered {n} ({x} too many). The number will not be generated until you fix the length.",
+ zr:"The account number cannot be all zeros.",mm:"The full number (14 digits) does not match the prefix of {b}. Check the selected bank.",
+ chars:"Letters and symbols were ignored: digits only.",ok:"✓ Digit count is correct.",
+ w2:"The prefix matches the bank, but the suffix differs from the recorded one. This may be normal.",w3:"This bank's format is not officially confirmed. Ask the beneficiary or the bank for the number and compare it.",
+ tok:"Matches a published sample",tbad:"Conflicting format",tunk:"Unconfirmed format",tnone:"Unknown bank",nores:"No results",full:"The account number for {b} is complete: {L}. No more digits can be added; you can only delete.",wa:"WhatsApp",shr:"Share",shTitle:"Share the number via",shWarn:"Send the number in a private chat only; never post it publicly. Facebook and Messenger need you to paste the copied text.",close:"Close",sms:"SMS",copyT:"Copy text",more:"More",cpTxt:"✓ Text copied, paste it in the chat",tapClose:"Tap to close",tHome:"Home",tHist:"Saved",tSet:"Settings",empty:"No saved numbers yet. After generating a number, tap “Save to history”.",stTitle:"Settings",stLang:"Language",stTheme:"Appearance",auto2:"Auto",light:"Light",dark:"Dark",stClear:"Auto-clear number after",off:"Off",m1:"1 min",m2:"2 min",m5:"5 min",stHide:"Hide the number when shown",no:"No",yes:"Yes",stNote:"Settings are stored on this device only.",qb:"QR code",sv:"Save to history",saved:"✓ Saved",saveFail:"Could not save",qrcap:"Scan to read the BBAN",qrFail:"Could not create the code, check your connection",del:"Delete",htitle:"Recent numbers",hclr:"Clear history",hnote:"Stored encrypted on this device only (AES-256). Tap an entry to reuse it."}
+};
+</script>
+<script>"use strict";
+/* التحقق من المدخلات وبناء BBAN والعرض */
+const $=i=>document.getElementById(i);
+let lang="ar",last=null,hidden=false,timer=0,dirty=false;
+const t=k=>T[lang][k];
+const bn=b=>lang==="ar"?b.n:b.e;
+const accLen=b=>14-b.p.length-b.s.length;
+const noun=n=>lang==="ar"?n+(n<=10?" خانات":" خانة"):n+(n===1?" digit":" digits");
+const AR={"٠":0,"١":1,"٢":2,"٣":3,"٤":4,"٥":5,"٦":6,"٧":7,"٨":8,"٩":9,"۰":0,"۱":1,"۲":2,"۳":3,"۴":4,"۵":5,"۶":6,"۷":7,"۸":8,"۹":9};
+const toLatin=v=>v.replace(/[٠-٩۰-۹]/g,c=>AR[c]);
+const bankOf=id=>BANKS.find(b=>b.id===id);
+const fitsP=(x,b)=>x.startsWith(b.p);
+const fits=(x,b)=>fitsP(x,b)&&(!b.s||x.endsWith(b.s));
+const group=s=>s.replace(/(.{4})/g,"$1 ").trim();
+const fmtMsg=(k,o)=>t(k).replace(/\{(\w+)\}/g,(m,w)=>o[w]!==undefined?o[w]:m);
+
+/* تنظيف المدخلات: أرقام لاتينية فقط وبحد أقصى 14 */
+function sanitize(){
+  const el=$("account"),raw=el.value,v=toLatin(raw).replace(/\D/g,"").slice(0,14);
+  dirty=toLatin(raw).replace(/[\s\-_.\u200e\u200f\u202a-\u202e]/g,"").length>v.length&&/[^\d\s\-_.\u200e\u200f\u202a-\u202e]/.test(toLatin(raw));
+  if(el.value!==v)el.value=v;
+  return v;
+}
+/* التحقق: يعيد الحالة + بيانات الرسالة */
+function check(v){
+  const b=bankOf($("bank").value);
+  if(!b)return{s:"nobank"};
+  const L=accLen(b),n=v.length,o={b:bn(b),L:noun(L)};
+  if(!n)return{s:"idle",b,L,n,o};
+  if(n===14){
+    if(!fitsP(v,b))return{s:"bad",k:"mm",b,L,n,o};
+    return{s:"ok",full:true,warn:fits(v,b)?"":"w2",b,L,n,o};
+  }
+  if(n<L)return{s:"bad",k:"sh",b,L,n,o:{...o,n:noun(n),x:noun(L-n)}};
+  if(n>L)return{s:"bad",k:"lg",b,L,n,o:{...o,n:noun(n),x:noun(n-L)}};
+  if(/^0+$/.test(v))return{s:"bad",k:"zr",b,L,n,o};
+  return{s:"ok",b,L,n,o};
+}
+function showLive(cls,text){const l=$("live");if(!text){l.className="live";l.textContent="";return}l.textContent=text;l.className="live show "+cls}
+function paint(){
+  const v=sanitize(),c=check(v),w=$("accw");
+  w.className="accw"+(c.s==="bad"?" bad":c.s==="ok"?" good":"");
+  $("cnt").textContent=c.L?(v.length+" / "+c.L):String(v.length);
+  $("prog").style.width=c.L?Math.min(100,v.length/c.L*100)+"%":"0";
+  if(c.s==="nobank")showLive("info",v.length?t("e0"):t("i1"));
+  else if(c.s==="idle")showLive("info",fmtMsg("i2",c.o));
+  else if(c.s==="bad")showLive("err",fmtMsg(c.k,c.o));
+  else showLive("info",t("ok")+(dirty?" "+t("chars"):""));
+  if(c.s==="bad"||c.s==="idle"||c.s==="nobank")hideResult();
+  return c;
+}
+function fillBanks(q){
+  const s=$("bank"),cur=s.value;q=(q||"").trim().toLowerCase();
+  s.replaceChildren(new Option(t("pick"),""));
+  BANKS.forEach(b=>s.appendChild(new Option(bn(b),b.id)));
+  if(cur&&bankOf(cur))s.value=cur;
+  const l=$("blist");l.replaceChildren();
+  const rows=BANKS.filter(b=>!q||b.n.includes(q)||b.e.toLowerCase().includes(q)||b.p===q);
+  if(!rows.length){const p=document.createElement("li");p.className="nores";p.textContent=t("nores");l.appendChild(p)}
+  rows.forEach(b=>{
+    const li=document.createElement("li"),bt=document.createElement("button"),nm=document.createElement("span"),sm=document.createElement("small");
+    bt.type="button";bt.className="bi"+(b.id===s.value?" sel":"");bt.setAttribute("role","option");
+    sm.textContent=b.p+" · "+noun(accLen(b));nm.className="bn";nm.append(document.createTextNode(bn(b)),sm);
+    bt.append(logo(b),nm);
+    if(b.id===s.value){const c=document.createElement("span");c.className="ck";c.textContent="✓";bt.appendChild(c)}
+    bt.addEventListener("click",()=>{s.value=b.id;s.dispatchEvent(new Event("change"));closeBanks()});
+    li.appendChild(bt);l.appendChild(li)});
+  showFmt();
+}
+function syncPick(){
+  const b=bankOf($("bank").value);
+  $("ptxt").textContent=b?bn(b):t("pick");$("pick").classList.toggle("empty",!b);
+  $("plogo").replaceChildren(...(b?[logo(b)]:[]));
+}
+function openBanks(){$("search").value="";fillBanks("");$("bks").className="sheet show";if(!matchMedia("(pointer:coarse)").matches)setTimeout(()=>$("search").focus(),50)}
+function closeBanks(){$("bks").className="sheet"}
+/* يمنع الكيبورد من إضافة خانات بعد اكتمال عدد خانات البنك، ويبقى الحذف فقط */
+function limitHit(){
+  const b=bankOf($("bank").value);if(!b)return;
+  showLive("warn",fmtMsg("full",{b:bn(b),L:noun(accLen(b))}));setTimeout(paint,2600);
+  const w=$("accw");w.classList.remove("shake");void w.offsetWidth;w.classList.add("shake");
+  if(navigator.vibrate)navigator.vibrate(30);
+  if(tg&&tg.HapticFeedback)tg.HapticFeedback.notificationOccurred("warning");
+}
+function showFmt(){syncPick();{const b0=bankOf($("bank").value);$("account").maxLength=b0?accLen(b0):14}
+  const f=$("fmt"),b=bankOf($("bank").value);f.replaceChildren();
+  if(!b){f.className="fmt";return}
+  f.className="fmt on";
+  const add=(c,x)=>{const s=document.createElement("span");s.className="seg "+c;s.textContent=x;f.appendChild(s)};
+  f.appendChild(logo(b));add("p",b.p);add("a",noun(accLen(b)));if(b.s)add("s",b.s);
+}
+function hideResult(){$("res").className="out";$("shs").className="sheet";$("qr").className="qr";$("qimg").removeAttribute("src");last=null;clearTimeout(timer)}
+function run(){
+  const v=sanitize(),c=paint();
+  if(c.s==="nobank"){showLive("err",t("e0"));$("bank").focus();return}
+  if(c.s==="idle"){showLive("err",t("e1"));$("account").focus();return}
+  if(c.s==="bad"){$("account").focus();return}
+  const b=c.b,bban=c.full?v:b.p+v+b.s;
+  last={bban,b,warn:c.warn||""};hidden=prefs.hide==="1";render();
+  clearTimeout(timer);{const s=+prefs.ttl;if(s)timer=setTimeout(clearAll,s*1000)}
+}
+function render(){
+  if(!last)return;
+  const{bban,b,warn}=last;
+  $("vb").textContent=hidden?"•••• •••• •••• ••":group(bban);
+  $("eye").textContent=hidden?t("show"):t("hide");
+  $("bname").replaceChildren(logo(b),document.createTextNode(bn(b)));
+  const g=$("btag");
+  if(b.st==="ok"){g.textContent=t("tok");g.className="tag ok"}
+  else if(b.st==="bad"){g.textContent=t("tbad");g.className="tag no"}
+  else{g.textContent=t("tunk");g.className="tag no"}
+  $("cp").textContent=t("copy");$("sv").textContent=t("sv");$("res").className="out show";
+  if(warn)showLive("warn",t(warn));else if(b.st!=="ok")showLive("warn",t("w3"));else showLive("","");
+}
+async function copy(){
+  if(!last)return;const btn=$("cp"),text=last.bban;
+  try{
+    if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(text);
+    else{const a=document.createElement("textarea");a.value=text;a.style.cssText="position:fixed;opacity:0";document.body.appendChild(a);a.select();const ok=document.execCommand("copy");a.remove();if(!ok)throw 0}
+    btn.textContent=t("copied");
+  }catch(e){btn.textContent=t("copyFail")}
+}
+function clearAll(){$("account").value="";$("search").value="";$("bank").value="";hidden=false;fillBanks("");hideResult();paint()}
+function applyLang(l){
+  lang=l;const h=document.documentElement;h.lang=l;h.dir=l==="ar"?"rtl":"ltr";
+  document.title=t("title")+" – BBAN";
+  document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));
+  $("search").placeholder=t("search");$("account").placeholder=t("ph");
+  $("lang").textContent=l==="ar"?"EN":"عربي";
+  fillBanks($("search").value);
+  if(last)render();else paint();
+  renderHist();
+  try{localStorage.setItem("bban-lang",l)}catch(e){}
+  markSeg();
+}
+function applyTheme(x){document.documentElement.setAttribute("data-theme",x);try{localStorage.setItem("bban-theme",x)}catch(e){}}
+const curTheme=()=>document.documentElement.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+
+</script>
+<script>"use strict";
+/* Telegram Mini App وعرض شعارات البنوك */
+/* ===== Telegram Mini App + شعارات البنوك ===== */
+const tg=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData?window.Telegram.WebApp:null;
+if(tg){try{tg.ready();tg.expand()}catch(e){}document.documentElement.setAttribute('data-theme',tg.colorScheme==='dark'?'dark':'light')}
+const MISSING=new Set();
+const logo=b=>{
+  const ph=()=>{const d=document.createElement('span');d.className='lg ph';d.textContent=b.e.trim()[0].toUpperCase();return d};
+  if(MISSING.has(b.id))return ph();
+  const i=new Image();i.className='lg';i.alt='';i.referrerPolicy='no-referrer';
+  i.onerror=()=>{MISSING.add(b.id);i.replaceWith(ph())};
+  i.src=LOGOS[b.id]||LOGO_DIR+b.id+'.png';return i};
+</script>
+<script>"use strict";
+/* السجل المشفّر (AES-GCM / IndexedDB) */
+/* ===== سجل مشفّر (AES-GCM، مفتاح غير قابل للتصدير في IndexedDB) ===== */
+let hist=[];
+const idb=(m,k,v)=>new Promise((res,rej)=>{const o=indexedDB.open("bban",1);o.onupgradeneeded=()=>o.result.createObjectStore("s");o.onerror=()=>rej(o.error);o.onsuccess=()=>{const tx=o.result.transaction("s",m==="get"?"readonly":"readwrite"),s=tx.objectStore("s"),q=m==="get"?s.get(k):m==="put"?s.put(v,k):s.delete(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}});
+async function hkey(){let k=await idb("get","key");if(!k){k=await crypto.subtle.generateKey({name:"AES-GCM",length:256},false,["encrypt","decrypt"]);await idb("put","key",k)}return k}
+async function loadHist(){try{const d=await idb("get","data");if(d){const p=await crypto.subtle.decrypt({name:"AES-GCM",iv:d.iv},await hkey(),d.c);hist=JSON.parse(new TextDecoder().decode(p))}}catch(e){hist=[]}renderHist()}
+async function saveHist(){try{const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:"AES-GCM",iv},await hkey(),new TextEncoder().encode(JSON.stringify(hist)));await idb("put","data",{iv,c});return true}catch(e){return false}}
+function renderHist(){
+  const l=$("hlist");l.replaceChildren();$("empty").hidden=hist.length>0;
+  hist.forEach((h,i)=>{
+    const b=bankOf(h.id);if(!b)return;
+    const li=document.createElement("li"),a=document.createElement("button"),n=document.createElement("b"),m=document.createElement("span"),x=document.createElement("button");
+    a.type="button";a.className="hi";n.textContent=bn(b);n.style.fontWeight="500";m.textContent="•••• "+h.bban.slice(-4);const w=document.createElement("span");w.style.cssText="display:flex;align-items:center;gap:10px";w.append(logo(b),n);a.append(w,m);
+    a.addEventListener("click",()=>useHist(h));
+    x.type="button";x.className="hx";x.textContent="×";x.setAttribute("aria-label",t("del"));
+    x.addEventListener("click",async()=>{hist.splice(i,1);await saveHist();renderHist()});
+    li.append(a,x);l.appendChild(li)});
+}
+function useHist(h){const b=bankOf(h.id);if(!b)return;show("home");$("search").value="";fillBanks("");$("bank").value=b.id;showFmt();$("account").value=h.bban.slice(b.p.length,14-b.s.length);run()}
+$("sv").addEventListener("click",async()=>{if(!last)return;const{b,bban}=last;hist=[{id:b.id,bban,ts:Date.now()},...hist.filter(x=>x.bban!==bban)].slice(0,10);const ok=await saveHist();$("sv").textContent=ok?t("saved"):t("saveFail");renderHist()});
+$("hclr").addEventListener("click",async()=>{hist=[];try{await idb("del","data")}catch(e){}renderHist()});
+</script>
+<script>"use strict";
+/* المشاركة ورمز QR */
+/* ===== مشاركة و QR ===== */
+const shareText=()=>bn(last.b)+"\nBBAN: "+last.bban;
+$("wa").addEventListener("click",()=>openShare());
+
+$("qb").addEventListener("click",()=>{
+  const q=$("qr");if(q.classList.contains("show")){q.className="qr";return}
+  if(!last||typeof qrcode!=="function"){$("qimg").removeAttribute("src");$("qcap").textContent=t("qrFail");q.className="qr show";return}
+  const c=qrcode(0,"M");c.addData(last.bban);c.make();
+  $("qimg").src=c.createDataURL(6,2);$("qcap").textContent=t("qrcap")+" · "+t("tapClose");q.className="qr show"});
+$("qr").addEventListener("click",()=>{$("qr").className="qr"});
+/* ===== مشاركة ===== */
+const I={
+wa:`<svg viewBox='0 0 24 24' fill='#fff'><path d='M12 2.5a9.5 9.5 0 0 0-8.1 14.4L2.5 21.5l4.7-1.3A9.5 9.5 0 1 0 12 2.5zm0 1.8a7.7 7.7 0 1 1-4 14.3l-.3-.2-2.7.8.8-2.6-.2-.3A7.7 7.7 0 0 1 12 4.3zM8.7 7.8c-.2 0-.5.1-.7.4-.3.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.4 3.8 2.200.9 2.600.7 3.100.6.5-.1 1.500-.6 1.700-1.200.2-.6.2-1.100.1-1.200l-.5-.3-1.600-.8c-.2-.1-.4-.1-.5.100l-.7.9c-.1.2-.3.2-.5.1-.9-.4-1.600-.8-2.300-1.800-.2-.3.2-.3.6-1.100.1-.2 0-.3 0-.5l-.7-1.700c-.2-.4-.4-.4-.5-.4z'/></svg>`,
+tg:`<svg viewBox='0 0 24 24' fill='#fff'><path d='M20.700 4.100L3.300 10.800c-1 .4-.9 1.200-.2 1.400l4.400 1.400 1.700 5.300c.2.600.4.800.8.800.4 0 .6-.2.900-.4l2.100-2 4.300 3.200c.8.400 1.400.2 1.600-.7l2.900-13.700c.3-1.200-.4-1.700-1.200-1.400zM9 13.100l9.100-5.700c.4-.3.800-.1.500.2l-7.400 6.800-.3 3.300z'/></svg>`,
+ms:`<svg viewBox='0 0 24 24'><path fill='#fff' d='M12 2.500C6.800 2.500 2.800 6.400 2.800 11.300c0 2.600 1.100 4.900 3 6.500v3.700l3.300-1.800c.9.200 1.900.4 2.900.4 5.200 0 9.200-3.900 9.200-8.800S17.200 2.500 12 2.500z'/><path fill='#0A7CFF' d='M6 14.200l3.800-4 2.500 2.200 3.700-2.200-3.700 4-2.500-2.200z'/></svg>`,
+fb:`<svg viewBox='0 0 24 24' fill='#fff'><path d='M14 21v-7.600h2.600l.4-3H14V8.600c0-.9.3-1.500 1.500-1.500H17V4.400c-.3 0-1.200-.1-2.200-.1-2.300 0-3.800 1.400-3.800 3.900v2.200H8.400v3H11V21z'/></svg>`,
+sms:`<svg viewBox='0 0 24 24' fill='none' stroke='#fff' stroke-width='1.8' stroke-linejoin='round'><path d='M4 5h16v11H9l-5 4z'/></svg>`,
+cp:`<svg viewBox='0 0 24 24' fill='none' stroke='#fff' stroke-width='1.8' stroke-linejoin='round'><rect x='8' y='8' width='12' height='12' rx='2'/><path d='M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3'/></svg>`,
+mo:`<svg viewBox='0 0 24 24' fill='#fff'><circle cx='5' cy='12' r='2'/><circle cx='12' cy='12' r='2'/><circle cx='19' cy='12' r='2'/></svg>`};
+const cpy=async x=>{try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(x);else{const a=document.createElement('textarea');a.value=x;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();const ok=document.execCommand('copy');a.remove();if(!ok)throw 0}return true}catch(e){return false}};
+function openShare(){
+  if(!last)return;
+  const tx=shareText(),e=encodeURIComponent(tx),g=$('sgrid');g.replaceChildren();$('shn').textContent=t('shWarn');
+  const items=[['WhatsApp','#25D366',I.wa,'https://wa.me/?text='+e,0],['Telegram','#229ED9',I.tg,'https://t.me/share/url?url=%20&text='+e,0],['Messenger','#0A7CFF',I.ms,'https://m.me/',1],['Facebook','#1877F2',I.fb,'https://www.facebook.com/',1],[t('sms'),'#34A853',I.sms,'sms:?&body='+e,0],[t('copyT'),'#6b7a90',I.cp,'',2]];
+  if(navigator.share)items.push([t('more'),'#8e6bd8',I.mo,'',3]);
+  items.forEach(([n,c,svg,href,m])=>{
+    const a=document.createElement(href?'a':'button'),ic=document.createElement('i'),s=document.createElement('span');
+    a.className='si';
+    if(href){a.href=href;if(!href.startsWith('sms'))a.target='_blank';a.rel='noopener noreferrer'}else a.type='button';
+    ic.style.background=c;ic.innerHTML=svg;s.textContent=n;a.append(ic,s);
+    a.addEventListener('click',ev=>{
+      if(m===1||m===2)cpy(tx).then(ok=>{$('shn').textContent=ok?t('cpTxt'):t('copyFail')});
+      if(m===3)navigator.share({text:tx}).catch(()=>{});
+      if(n==='Telegram'&&tg){ev.preventDefault();tg.openTelegramLink(href)}
+    });
+    g.appendChild(a)});
+  $('shs').className='sheet show';
+}
+$('shs').addEventListener('click',e=>{if(e.target===$('shs')||e.target===$('shx'))$('shs').className='sheet'});
+addEventListener('keydown',e=>{if(e.key==='Escape'){$('qr').className='qr';$('shs').className='sheet';$('bks').className='sheet'}});
+</script>
+<script>"use strict";
+/* التنقل بين الصفحات والإعدادات */
+/* ===== صفحات وإعدادات ===== */
+let prefs={ttl:'120',hide:'0'};
+try{prefs={...prefs,...JSON.parse(localStorage.getItem('bban-prefs')||'{}')}}catch(e){}
+function show(p){['home','hist','set'].forEach(x=>{$('p-'+x).hidden=x!==p});document.querySelectorAll('.tin button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));scrollTo(0,0);$('fine').hidden=p!=='home';if(p==='hist')renderHist()}
+function markSeg(){const cur={lang,theme:document.documentElement.getAttribute('data-theme')||'auto',ttl:prefs.ttl,hide:prefs.hide};document.querySelectorAll('.segc').forEach(g=>g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cur[g.dataset.k])))}
+function setPref(k,v){
+  if(k==='lang')applyLang(v);
+  else if(k==='theme'){if(v==='auto'){document.documentElement.removeAttribute('data-theme');try{localStorage.removeItem('bban-theme')}catch(e){}}else applyTheme(v)}
+  else{prefs[k]=v;try{localStorage.setItem('bban-prefs',JSON.stringify(prefs))}catch(e){}}
+  markSeg();
+}
+document.querySelectorAll('.tin button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
+document.querySelectorAll('.segc').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(b)setPref(g.dataset.k,b.dataset.v)}));
+$('hclr2').addEventListener('click',()=>$('hclr').click());
+</script>
+<script>"use strict";
+/* ربط الأحداث وتشغيل التطبيق */
+$("account").addEventListener("beforeinput",e=>{
+  if(!e.inputType.startsWith("insert")||e.inputType==="insertFromPaste")return;
+  if(e.data&&/\D/.test(toLatin(e.data))){e.preventDefault();showLive("warn",t("chars"));setTimeout(paint,1800);return}
+  const b=bankOf($("bank").value),el=$("account");
+  if(b&&el.value.length-(el.selectionEnd-el.selectionStart)>=accLen(b)){e.preventDefault();limitHit()}
+});
+$("account").addEventListener("paste",e=>{
+  const b=bankOf($("bank").value);if(!b)return;
+  e.preventDefault();
+  let v=toLatin(e.clipboardData.getData("text")).replace(/\D/g,"");
+  if(v.length===14&&fitsP(v,b))v=v.slice(b.p.length,14-b.s.length);
+  const el=$("account"),nv=el.value.slice(0,el.selectionStart)+v+el.value.slice(el.selectionEnd);
+  if(nv.length>accLen(b)){limitHit();return}
+  el.value=nv;el.dispatchEvent(new Event("input"));
+});
+$("pick").addEventListener("click",openBanks);
+$("bks").addEventListener("click",e=>{if(e.target===$("bks")||e.target===$("bkx"))closeBanks()});
+$("go").addEventListener("click",run);
+$("clear").addEventListener("click",clearAll);
+$("cp").addEventListener("click",copy);
+$("eye").addEventListener("click",()=>{hidden=!hidden;if(hidden){$("qr").className="qr";$("qimg").removeAttribute("src")}render()});
+$("search").addEventListener("input",e=>fillBanks(e.target.value));
+$("bank").addEventListener("change",()=>{showFmt();hideResult();paint();$("account").focus()});
+$("account").addEventListener("input",()=>{hideResult();paint()});
+$("account").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
+$("lang").addEventListener("click",()=>applyLang(lang==="ar"?"en":"ar"));
+$("theme").addEventListener("click",()=>applyTheme(curTheme()==="dark"?"light":"dark"));
+let sl="ar";
+try{const v=localStorage.getItem("bban-theme");if(v==="dark"||v==="light")document.documentElement.setAttribute("data-theme",v);sl=localStorage.getItem("bban-lang")||"ar"}catch(e){}
+applyLang(sl==="en"?"en":"ar");
+loadHist();
+</script>
+<script>"use strict";
+/* ===== تحديث قائمة البنوك من banks.json بدون إعادة نشر السكربت =====
+   الترتيب: الشبكة ← النسخة المحفوظة (إن كانت أحدث من المدمجة) ← القائمة المدمجة أعلاه */
+(function(){
+  const FILE="banks.json",KEY="bban-banks",EMBEDDED="2026-11-10";
+  function valid(x){
+    if(!x||!Array.isArray(x.banks)||x.banks.length<1||x.banks.length>200)return null;
+    const seen=new Set(),out=[];
+    for(const b of x.banks){
+      if(!b||typeof b.id!=="string"||!/^[a-z0-9_-]{1,32}$/.test(b.id)||seen.has(b.id))return null;
+      if(typeof b.n!=="string"||typeof b.e!=="string"||!b.n||!b.e)return null;
+      const s=b.s==null?"":b.s;
+      if(typeof b.p!=="string"||!/^\d{1,10}$/.test(b.p)||typeof s!=="string"||!/^\d{0,10}$/.test(s))return null;
+      if(b.p.length+s.length>10||["ok","unk","bad"].indexOf(b.st)<0)return null;
+      seen.add(b.id);out.push({id:b.id,n:b.n,e:b.e,p:b.p,s:s,st:b.st});
+    }
+    return out;
+  }
+  function apply(list){
+    if(JSON.stringify(list)===JSON.stringify(BANKS))return;
+    BANKS.splice(0,BANKS.length,...list);
+    hideResult();fillBanks($("search").value);showFmt();paint();renderHist();
+  }
+  async function load(){
+    let list=null;
+    try{
+      const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),6000);
+      const r=await fetch(FILE,{cache:"no-cache",signal:ctl.signal,credentials:"omit"});
+      clearTimeout(tm);
+      if(r.ok){const j=await r.json();list=valid(j);
+        if(list){try{localStorage.setItem(KEY,JSON.stringify(j))}catch(e){}}}
+    }catch(e){}
+    if(!list){try{const j=JSON.parse(localStorage.getItem(KEY));
+      if(j&&String(j.version)>=EMBEDDED)list=valid(j)}catch(e){}}
+    if(list)apply(list);
+  }
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+{
+  "version": "2026-11-10",
+  "updated_at": "2026-11-10",
+  "schema_version": 1,
+  "banks": [
+    {
+      "id": "khartoum",
+      "n": "بنك الخرطوم – بنكك",
+      "e": "Bank of Khartoum – Bankak",
+      "p": "040",
+      "s": "0001",
+      "st": "ok"
+    },
+    {
+      "id": "faisal",
+      "n": "بنك فيصل الإسلامي – فوري",
+      "e": "Faisal Islamic Bank – Fawry",
+      "p": "02",
+      "s": "0001",
+      "st": "ok"
+    },
+    {
+      "id": "omdurman",
+      "n": "بنك أمدرمان الوطني – أوكاش",
+      "e": "Omdurman National Bank – OCash",
+      "p": "240",
+      "s": "00001",
+      "st": "ok"
+    },
+    {
+      "id": "nile",
+      "n": "بنك النيل – ساهل",
+      "e": "Nile Bank – Sahel",
+      "p": "08490",
+      "s": "01",
+      "st": "ok"
+    },
+    {
+      "id": "mashreq",
+      "n": "بنك النيل الأزرق – مشرق",
+      "e": "Blue Nile Mashreq Bank – Mashreq",
+      "p": "150000",
+      "s": "",
+      "st": "ok"
+    },
+    {
+      "id": "islamic",
+      "n": "البنك الإسلامي السوداني – أمن بلس",
+      "e": "Sudanese Islamic Bank – Aman Plus",
+      "p": "14000",
+      "s": "00001",
+      "st": "ok"
+    },
+    {
+      "id": "mazare",
+      "n": "بنك المزارع التجاري – مصرفك",
+      "e": "Farmers' Commercial Bank – Masrafak",
+      "p": "222",
+      "s": "",
+      "st": "ok"
+    },
+    {
+      "id": "french",
+      "n": "البنك السوداني الفرنسي",
+      "e": "Sudanese French Bank",
+      "p": "110",
+      "s": "00001",
+      "st": "ok"
+    },
+    {
+      "id": "agri",
+      "n": "البنك الزراعي السوداني",
+      "e": "Agricultural Bank of Sudan",
+      "p": "03",
+      "s": "01001",
+      "st": "unk"
+    },
+    {
+      "id": "salam",
+      "n": "بنك السلام السوداني",
+      "e": "Al Salam Bank Sudan",
+      "p": "180",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "baraka",
+      "n": "بنك البركة السوداني",
+      "e": "Al Baraka Bank Sudan",
+      "p": "070",
+      "s": "00001",
+      "st": "bad"
+    },
+    {
+      "id": "livestock",
+      "n": "بنك الثروة الحيوانية",
+      "e": "Animal Resources Bank",
+      "p": "090",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "realestate",
+      "n": "البنك العقاري التجاري",
+      "e": "Real Estate Commercial Bank",
+      "p": "210",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "industrial",
+      "n": "بنك التنمية الصناعية",
+      "e": "Industrial Development Bank",
+      "p": "130",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "united",
+      "n": "بنك المال المتحد",
+      "e": "United Capital Bank",
+      "p": "170",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "cashi",
+      "n": "محفظة ماي كاشي – Cashi",
+      "e": "MyCashi Wallet – Cashi",
+      "p": "070",
+      "s": "98",
+      "st": "unk"
+    },
+    {
+      "id": "workers",
+      "n": "بنك العمال الوطني",
+      "e": "National Workers Bank",
+      "p": "160",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "saving",
+      "n": "بنك الادخار والتنمية",
+      "e": "Savings & Development Bank",
+      "p": "120",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "tadamon",
+      "n": "بنك التضامن الإسلامي",
+      "e": "Tadamon Islamic Bank",
+      "p": "080",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "gulf",
+      "n": "بنك الخليج",
+      "e": "Gulf Bank",
+      "p": "290",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "family",
+      "n": "بنك الأسرة",
+      "e": "Family Bank",
+      "p": "300",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "north",
+      "n": "بنك الشمال الإسلامي",
+      "e": "Al Shamal Islamic Bank",
+      "p": "050",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "nilain",
+      "n": "بنك النيلين",
+      "e": "Nilein Bank",
+      "p": "060",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "jordan",
+      "n": "البنك السوداني الأردني",
+      "e": "Sudanese Jordanian Bank",
+      "p": "190",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "qnb",
+      "n": "بنك قطر الوطني – QNB",
+      "e": "Qatar National Bank – QNB",
+      "p": "230",
+      "s": "00001",
+      "st": "unk"
+    },
+    {
+      "id": "byblos",
+      "n": "بنك بيبلوس إفريقيا",
+      "e": "Byblos Bank Africa",
+      "p": "250",
+      "s": "00001",
+      "st": "unk"
+    }
+  ],
+  "notice_ar": "هذه البيانات منقولة من القائمة المضمنة في النسخة الأصلية للمشروع وليست اعتماداً رسمياً لصيغ BBAN. يجب مراجعة كل بادئة ولاحقة مع البنك أو الجهة المصرفية المختصة قبل استخدامها للتحويلات.",
+  "notice_en": "These records were copied from the original embedded project list and are not official BBAN specifications. Verify every prefix and suffix with the bank or relevant banking authority before using for transfers."
+}
