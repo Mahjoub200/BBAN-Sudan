@@ -57,7 +57,7 @@
   }
   window.BBAN_TRACK = track;
 
-  syncBanks().catch(err => console.warn('[BBAN] Cloud bank sync failed; local list retained.', err));
+  syncBanks().then(() => alert('نجاح المزامنة: ' + BANKS.length + ' بنك')).catch(err => alert('فشل المزامنة: ' + err.message));
   document.addEventListener('change', e => {
     if (e.target?.id === 'bank' && e.target.value) track('bank_selected', e.target.value);
   });
