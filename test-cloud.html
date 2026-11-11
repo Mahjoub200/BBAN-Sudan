@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BBAN Cloud Test</title>
+<body style="font-family:sans-serif;padding:25px">
+<h2>اختبار اتصال BBAN</h2>
+<pre id="result">جارٍ الاختبار...</pre>
+<script src="./config.js?v=test1"></script>
+<script>
+(async () => {
+  const out = document.getElementById('result');
+  try {
+    const c = window.BBAN_CONFIG;
+    if (!c || !c.SUPABASE_URL || !c.SUPABASE_ANON_KEY) {
+      throw new Error('إعدادات Supabase غير موجودة');
+    }
+    const r = await fetch(
+      c.SUPABASE_URL + '/rest/v1/banks?select=id&limit=1',
+      {
+        headers: {
+          apikey: c.SUPABASE_ANON_KEY,
+          Authorization: 'Bearer ' + c.SUPABASE_ANON_KEY
+        },
+        cache: 'no-store'
+      }
+    );
+    const body = await r.text();
+    out.textContent = 'HTTP: ' + r.status + '\nالنتيجة: ' + body;
+  } catch (e) {
+    out.textContent = 'ERROR: ' + e.name + '\n' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
