@@ -1,41 +1,30 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BBAN Full Query Test</title>
+<title>BBAN Script Test</title>
+</head>
 <body style="font-family:sans-serif;padding:20px">
-<h2>اختبار جلب البنوك الكامل</h2>
-<pre id="result">جارٍ الاختبار...</pre>
-<script src="./config.js?v=fulltest1"></script>
+<h2>اختبار سكربت BBAN الفعلي</h2>
+<pre id="result">جارٍ تحميل السكربت...</pre>
+
+<script src="./config.js?v=direct-test"></script>
+
 <script>
-(async () => {
-  const out = document.getElementById('result');
-  try {
-    const c = window.BBAN_CONFIG;
-    const params = new URLSearchParams({
-      select: 'id,name_ar,name_en,prefix,suffix,status,enabled,logo_url,sort_order',
-      enabled: 'eq.true',
-      order: 'sort_order.asc'
-    });
-    const r = await fetch(
-      c.SUPABASE_URL.replace(/\/+$/, '') +
-      '/rest/v1/banks?' + params.toString(),
-      {
-        headers: {
-          apikey: c.SUPABASE_ANON_KEY,
-          Authorization: 'Bearer ' + c.SUPABASE_ANON_KEY
-        },
-        cache: 'no-store'
-      }
-    );
-    const body = await r.text();
-    out.textContent = 'HTTP: ' + r.status + '\n' +
-      'عدد البنوك: ' + (r.ok ? JSON.parse(body).length : '-') +
-      '\nالنتيجة:\n' + body.slice(0, 2500);
-  } catch (e) {
-    out.textContent = e.name + ': ' + e.message;
-  }
-})();
+const BANKS = [];
+
+function fillBanks() {
+  document.getElementById('result').textContent =
+    'عدد البنوك المحمّلة: ' + BANKS.length + '\n\n' +
+    BANKS.map(b => b.id + ' — ' + b.n).join('\n');
+}
+
+function showFmt() {}
+function paint() {}
+function renderHist() {}
 </script>
+
+<script src="./cloud.js?v=direct-v3"></script>
 </body>
 </html>
