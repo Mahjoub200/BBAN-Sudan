@@ -2,21 +2,24 @@
 <html lang="ar" dir="rtl">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BBAN Cloud Test</title>
-<body style="font-family:sans-serif;padding:25px">
-<h2>اختبار اتصال BBAN</h2>
+<title>BBAN Full Query Test</title>
+<body style="font-family:sans-serif;padding:20px">
+<h2>اختبار جلب البنوك الكامل</h2>
 <pre id="result">جارٍ الاختبار...</pre>
-<script src="./config.js?v=test1"></script>
+<script src="./config.js?v=fulltest1"></script>
 <script>
 (async () => {
   const out = document.getElementById('result');
   try {
     const c = window.BBAN_CONFIG;
-    if (!c || !c.SUPABASE_URL || !c.SUPABASE_ANON_KEY) {
-      throw new Error('إعدادات Supabase غير موجودة');
-    }
+    const params = new URLSearchParams({
+      select: 'id,name_ar,name_en,prefix,suffix,status,enabled,logo_url,sort_order',
+      enabled: 'eq.true',
+      order: 'sort_order.asc'
+    });
     const r = await fetch(
-      c.SUPABASE_URL + '/rest/v1/banks?select=id&limit=1',
+      c.SUPABASE_URL.replace(/\/+$/, '') +
+      '/rest/v1/banks?' + params.toString(),
       {
         headers: {
           apikey: c.SUPABASE_ANON_KEY,
@@ -26,9 +29,11 @@
       }
     );
     const body = await r.text();
-    out.textContent = 'HTTP: ' + r.status + '\nالنتيجة: ' + body;
+    out.textContent = 'HTTP: ' + r.status + '\n' +
+      'عدد البنوك: ' + (r.ok ? JSON.parse(body).length : '-') +
+      '\nالنتيجة:\n' + body.slice(0, 2500);
   } catch (e) {
-    out.textContent = 'ERROR: ' + e.name + '\n' + e.message;
+    out.textContent = e.name + ': ' + e.message;
   }
 })();
 </script>
