@@ -33,7 +33,7 @@
       id: String(b.id), n: String(b.name_ar || ''), e: String(b.name_en || ''),
       p: String(b.prefix || ''), s: String(b.suffix || ''),
       st: ['ok','unk','bad'].includes(b.status) ? b.status : 'unk',
-      logo: b.logo_url || ''
+      logo_url: b.logo_url || ''
     })).filter(b => b.id && b.n && b.e && /^\d{1,10}$/.test(b.p) && /^\d{0,10}$/.test(b.s) && b.p.length + b.s.length < 14);
     if (!mapped.length) return;
     BANKS.splice(0, BANKS.length, ...mapped);
